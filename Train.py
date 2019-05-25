@@ -53,7 +53,7 @@ print(log_df['center'][:10])
 filtered_train_img_id = []
 for img_id in log_df.index.values:
     if abs(log_df.at[img_id, 'steering']) < 0.001:
-        if np.random.random_sample() < 0.001:
+        if np.random.random_sample() < 0.01:
             filtered_train_img_id.append(img_id)
     else:
         filtered_train_img_id.append(img_id)
@@ -128,8 +128,8 @@ from keras import regularizers
 
 
 def NvidiaCNN(input_layer):
-
-    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu')(input_layer)
+    x = BatchNormalization()(input_layer)
+    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
     x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
@@ -139,7 +139,9 @@ def NvidiaCNN(input_layer):
     x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dense(units=50, activation='tanh')(x)
+    x = BatchNormalization()(x)
     x = Dense(units=25, activation='tanh')(x)
+    x = BatchNormalization()(x)
     x = Dense(units=5, activation='tanh')(x)
     x = Dense(units=1, activation='tanh')(x)
 
@@ -160,7 +162,7 @@ print(model.summary())
 # Train the network
 ########################################################################################################################
 
-early_stopping = EarlyStopping(patience=15, verbose=1)
+early_stopping = EarlyStopping(patience=10, verbose=1)
 checkpointer = ModelCheckpoint(filepath='model.hdf5', save_best_only=True, verbose=1)
 csv_logger = CSVLogger('training_history.log')
 # checkpointer=ModelCheckpoint(filepath='models/model.{epoch:02d}-{val_loss:.3f}.hdf5', save_best_only=False, verbose=1, period=5)
