@@ -36,7 +36,8 @@ test_split = 0.15
 
 batch_size = 64
 
-img_dim = (90, 320)
+# img_dim = (90, 320)
+img_dim = (80, 320)
 ########################################################################################################################
 # Load and prepare the data
 ########################################################################################################################
@@ -65,7 +66,7 @@ train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid
 filtered_train_img_id = []
 for img_id in train_img_ids:
     if abs(log_df.at[img_id, 'steering']) < 0.001:
-        if np.random.random_sample() < 0.01:
+        if np.random.random_sample() < 0.05:
             filtered_train_img_id.append(img_id)
     else:
         filtered_train_img_id.append(img_id)
