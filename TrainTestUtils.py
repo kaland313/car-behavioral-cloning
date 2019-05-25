@@ -26,7 +26,7 @@ from keras.models import load_model
 ########################################################################################################################
 def load_datasets(datasets=('Joystick nice/', 'WASD/', 'Joysink oversteer/', 'Udacity/'),
                   data_base_path='/home/kalap/Documents/Onlab/Udacity CarND/Datasets/',
-                  log_csv_path='driving_log.csv'):
+                  log_csv_path='driving_log.csv', shuffle = False):
     log_df = pd.DataFrame()
     for dataset in datasets:
         print("Loading", data_base_path + dataset + log_csv_path)
@@ -35,6 +35,10 @@ def load_datasets(datasets=('Joystick nice/', 'WASD/', 'Joysink oversteer/', 'Ud
         temp_df['right'] = data_base_path + dataset + temp_df['right'].str.strip()
         temp_df['left'] = data_base_path + dataset + temp_df['left'].str.strip()
         log_df = pd.concat([log_df, temp_df], axis=0, ignore_index=True)
+
+    # https://stackoverflow.com/questions/29576430/shuffle-dataframe-rows
+    if shuffle:
+        log_df = log_df.sample(frac=1).reset_index(drop=True)
 
     return log_df
 
@@ -48,9 +52,6 @@ def separate(data, valid_split=0.2, test_split=0.2, shuffle=True):
 
     sum_ = data.shape[0]
 
-    if shuffle:
-        np.random.shuffle(data)
-
     train = data[:int(sum_ * (1 - valid_split - test_split))]
     valid = data[int(sum_ * (1 - valid_split - test_split)):int(sum_ * (1 - test_split))]
     test = data[int(sum_ * (1 - test_split)):]
@@ -58,7 +59,7 @@ def separate(data, valid_split=0.2, test_split=0.2, shuffle=True):
     return train, valid, test
 
 
-def show_image_with_steering_cmd(image, steering_cmd):
+def show_image_with_steering_cmd(image, steering_cmd, title=""):
     img_height = image.shape[0]
     img_width = image.shape[1]
     plt.imshow(image)
@@ -77,6 +78,8 @@ def show_image_with_steering_cmd(image, steering_cmd):
     x2 = img_width / 2 + l * np.sin(-1 * 25.0 / 180.0 * np.pi)
     y2 = img_height - l * np.cos(-1 * 25.0 / 180.0 * np.pi)
     plt.plot([x1, x2], [y1, y2], 'k--')
+
+    plt.title(title)
 
     plt.show()
 
@@ -122,12 +125,14 @@ class DataGenerator(Sequence):
         indexes = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
 
         # Find list of IDs
-        list_IDs_temp = [self.list_IDs[k] for k in indexes]
+        self.list_IDs_temp = [self.list_IDs[k] for k in indexes]
 
         # Generate data
-        X, Y = self.generate(list_IDs_temp)
-
+        X, Y = self.generate(self.list_IDs_temp)
         return X, Y
+
+    def get_last_batch_ImageIDs(self):
+        return self.list_IDs_temp
 
     def generate(self, tmp_list):
         # Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)

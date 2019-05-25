@@ -38,17 +38,20 @@ img_dim = (90, 320)
 ########################################################################################################################
 # Load and prepare the data
 ########################################################################################################################
-log_df = load_datasets()
+log_df = load_datasets(shuffle=True)
 
 pd.set_option('max_columns', 7)
-pd.set_option('display.width', 250)
+pd.set_option('display.width', 350)
 print(log_df.head())
 print(log_df.describe())
 print(log_df.shape)
+head_image_paths = log_df['center']
+pd.options.display.max_colwidth = 150
+print(log_df['center'][:10])
 
 
 # Split the data
-train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split, shuffle=True)
+train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split)
 plt.hist(log_df.loc[train_img_ids, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 plt.show()
 
@@ -68,7 +71,7 @@ plt.show()
 # train_img_ids = filtered_train_img_id
 #
 # plt.hist(log_df.loc[filtered_train_img_id,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
-#
+# plt.show()
 
 np.save("train_img_ids.npy", train_img_ids)
 np.save("valid_img_ids.npy", valid_img_ids)
@@ -90,16 +93,22 @@ validation_generator = DataGenerator(
 )
 
 gt_img, gt_commands = training_generator.__getitem__(10)
+gt_ID = training_generator.get_last_batch_ImageIDs()
+
 print(gt_img.shape, gt_commands.shape)
 print(gt_commands[0])
 # plt.imshow(cv2.cvtColor(gt_img[0]*0.5+0.5, cv2.COLOR_RGB2YUV))
-show_image_with_steering_cmd(gt_img[0]*0.5+0.5, gt_commands[0])
+for idx in range(1):
+    filename = log_df.at[gt_ID[idx], 'center']
+    filename = filename[filename.find('Datasets')+9:]
+    show_image_with_steering_cmd(gt_img[idx]*0.5+0.5, gt_commands[idx], filename)
 
 
 steering_cmds = np.empty(50*batch_size)
 for idx in tqdm(range(50)):
     gt_img, gt_commands = training_generator.__getitem__(idx)
     steering_cmds[idx*batch_size:(idx+1)*batch_size] = gt_commands.flatten()
+
 
 print(min(steering_cmds), max(steering_cmds))
 # np.set_printoptions(threshold=np.nan)
@@ -142,11 +151,11 @@ def NvidiaCNN(input_layer):
 input_layer = Input((*img_dim, 3))
 final_layer = NvidiaCNN(input_layer)
 
-model = load_model("model-fin.hdf5")
-# model = Model(inputs=input_layer, outputs=final_layer)
+# model = load_model("model-fin.hdf5")
+model = Model(inputs=input_layer, outputs=final_layer)
 
 # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer=Adam(), loss='mae')
+model.compile(optimizer=Adam(), loss='mse')
 print(model.summary())
 
 ########################################################################################################################
@@ -163,7 +172,7 @@ history = model.fit_generator(generator=training_generator,
                               epochs=50,
                               validation_data=validation_generator,
                               validation_steps=len(validation_generator),
-                              callbacks=[checkpointer, csv_logger],
+                              callbacks=[checkpointer, early_stopping, csv_logger],
                               verbose=1)
 
 model.save('model-fin.hdf5')
