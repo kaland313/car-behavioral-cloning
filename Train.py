@@ -123,10 +123,12 @@ class DataGenerator(Sequence):
 ########################################################################################################################
 # PARAMETERS
 ########################################################################################################################
-data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/Bandy data/'
-log_csv_path = 'driving_log_correct.csv'
+# data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/Bandy data/'
+# log_csv_path = 'driving_log_correct.csv'
 # data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/Udacity data/'
 # log_csv_path = 'driving_log.csv'
+data_path  = '/home/andras/AIDriver/Udacity data'
+log_csv_path = 'driving_log.csv'
 
 valid_split = 0.15
 test_split = 0.15
@@ -137,8 +139,8 @@ img_dim = (160, 320)
 ########################################################################################################################
 # Load and prepare the data
 ########################################################################################################################
-log_df = pd.read_csv(data_path + log_csv_path, sep=';', decimal=',')
-# log_df = pd.read_csv(data_path + log_csv_path)
+# log_df = pd.read_csv(data_path + log_csv_path, sep=';', decimal=',')
+log_df = pd.read_csv(data_path + log_csv_path)
 log_df['center'] = log_df['center'].str.strip()
 log_df['right']  = log_df['right'].str.strip()
 log_df['left']   = log_df['left'].str.strip()
@@ -216,7 +218,7 @@ def NvidiaCNN(input_layer):
     x = Dropout(0.5)(x)
     x = Dense(units=50, activation='tanh')(x)
     x = Dropout(0.5)(x)
-    x = Dense(units=10, activation='tanh', kernel_regularizer=regularizers.l2(0.01))(x)
+    x = Dense(units=10, activation='tanh')(x)
     x = Dense(units=1, activation='tanh')(x)
 
     return x
