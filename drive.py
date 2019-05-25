@@ -16,9 +16,10 @@ from keras.models import load_model
 
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
+config = tf.ConfigProto(device_count = {'GPU': 0}) # Use CPU for the testing
+# config.gpu_options.allow_growth = True
 set_session(tf.Session(config=config))
+
 
 import utils
 
