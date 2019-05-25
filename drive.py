@@ -23,7 +23,6 @@ config = tf.ConfigProto(device_count = {'GPU': 0}) # Use CPU for the testing
 set_session(tf.Session(config=config))
 
 
-import utils
 from TrainTestUtils import *
 
 sio = socketio.Server()
@@ -56,7 +55,7 @@ def telemetry(sid, data):
         try:
             image = np.asarray(image)       # from PIL image to numpy array
             # image = utils.preprocess(image) # apply the preprocessing
-            image = utils.crop(image)
+            image = crop(image)
             image = np.array([image])       # the model expects 4D array
 
             # predict the steering angle for the image

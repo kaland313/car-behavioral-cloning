@@ -42,6 +42,12 @@ def load_datasets(datasets=('Joystick nice/', 'WASD/', 'Joysink oversteer/', 'Ud
 
     return log_df
 
+def crop(image):
+    """
+    Crop the image (removing the sky at the top and the car front at the bottom)
+    """
+    return image[60:-10, :, :] # remove the sky and the car front
+
 def separate(data, valid_split=0.2, test_split=0.2, shuffle=True):
     """
     Separate the dataset into 3 different parts. Train, validation and test.

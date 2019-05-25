@@ -29,7 +29,7 @@ from TrainTestUtils import *
 ########################################################################################################################
 # PARAMETERS
 ########################################################################################################################
-output_loc='RepeatedTraining/05/'
+output_loc=''
 
 valid_split = 0.15
 test_split = 0.15
@@ -52,18 +52,8 @@ pd.options.display.max_colwidth = 150
 print(log_df['center'][:10])
 
 
-filtered_train_img_id = []
-for img_id in log_df.index.values:
-    if abs(log_df.at[img_id, 'steering']) < 0.001:
-        if np.random.random_sample() < 0.01:
-            filtered_train_img_id.append(img_id)
-    else:
-        filtered_train_img_id.append(img_id)
-
-# train_img_ids = filtered_train_img_id
-
 # Split the data
-train_img_ids, valid_img_ids, test_img_ids = separate(filtered_train_img_id, valid_split, test_split)
+train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split)
 # plt.hist(log_df.loc[train_img_ids, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 # plt.show()
 
@@ -72,6 +62,15 @@ train_img_ids, valid_img_ids, test_img_ids = separate(filtered_train_img_id, val
 # log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
 
 
+filtered_train_img_id = []
+for img_id in train_img_ids:
+    if abs(log_df.at[img_id, 'steering']) < 0.001:
+        if np.random.random_sample() < 0.01:
+            filtered_train_img_id.append(img_id)
+    else:
+        filtered_train_img_id.append(img_id)
+
+train_img_ids = filtered_train_img_id
 
 # plt.hist(log_df.loc[filtered_train_img_id, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 # plt.show()
@@ -101,10 +100,10 @@ gt_ID = training_generator.get_last_batch_ImageIDs()
 print(gt_img.shape, gt_commands.shape)
 print(gt_commands[0])
 # plt.imshow(cv2.cvtColor(gt_img[0]*0.5+0.5, cv2.COLOR_RGB2YUV))
-# for idx in range(1):
-#     filename = log_df.at[gt_ID[idx], 'center']
-#     filename = filename[filename.find('Datasets')+9:]
-#     show_image_with_steering_cmd(gt_img[idx]*0.5+0.5, gt_commands[idx], filename)
+for idx in range(1):
+    filename = log_df.at[gt_ID[idx], 'center']
+    filename = filename[filename.find('Datasets')+9:]
+    show_image_with_steering_cmd(gt_img[idx]*0.5+0.5, gt_commands[idx], filename)
 
 
 # Look at the distribution of the generator output
@@ -130,20 +129,22 @@ from keras import regularizers
 
 
 def NvidiaCNN(input_layer):
-    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu')(input_layer)
+    x = BatchNormalization()(input_layer)
+    x = Conv2D(filters=3, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu')(x)
+    x = Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=12, kernel_size=5, strides=(2, 2), activation='relu')(x)
+    x = Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=16, kernel_size=3, activation='relu')(x)
+    x = Conv2D(filters=48, kernel_size=3, activation='relu')(x)
+    x = BatchNormalization()(x)
+    x = Conv2D(filters=64, kernel_size=3, activation='relu')(x)
     x = BatchNormalization()(x)
     x = Flatten()(x)
+    x = Dense(units=100, activation='tanh')(x)
     x = Dense(units=50, activation='tanh')(x)
-    x = Dense(units=25, activation='tanh')(x)
-    x = Dense(units=5, activation='tanh')(x)
+    x = Dense(units=10, activation='tanh')(x)
     x = Dense(units=1, activation='tanh')(x)
-
     return x
 
 
