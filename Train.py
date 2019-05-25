@@ -146,7 +146,7 @@ model = load_model("model-fin.hdf5")
 # model = Model(inputs=input_layer, outputs=final_layer)
 
 # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer=Adam(lr=1e-3), loss='mse')
+model.compile(optimizer=Adam(), loss='mae')
 print(model.summary())
 
 ########################################################################################################################
