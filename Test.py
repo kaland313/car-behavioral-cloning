@@ -25,7 +25,7 @@ from TrainTestUtils import *
 # PARAMETERS
 ########################################################################################################################
 batch_size = 256
-img_dim = (70, 320)
+img_dim = (80, 320)
 valid_split = 0.15
 test_split = 0.15
 
@@ -116,16 +116,13 @@ def PlotActivations(model, img_ids, log_df, img_dim, batch_size=256):
     )
 
     input_layer = Input((*img_dim, 3))
-    x = BatchNormalization()(input_layer)
-    x = Conv2D(filters=3, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[2].get_weights())(x)
+    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[1].get_weights())(input_layer)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[4].get_weights())(x)
+    x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[3].get_weights())(x)
+    x = BatchNormalization()(x)
+    x = Conv2D(filters=12, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[5].get_weights())(x)
     # x = BatchNormalization()(x)
-    # x = Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[6].get_weights())(x)
-    # x = BatchNormalization()(x)
-    # x = Conv2D(filters=48, kernel_size=3, activation='relu', weights=model.layers[8].get_weights())(x)
-    # x = BatchNormalization()(x)
-    # x = Conv2D(filters=64, kernel_size=3, activation='relu', weights=model.layers[10].get_weights())(x)
+    # x = Conv2D(filters=16, kernel_size=3, activation='relu', weights=model.layers[7].get_weights())(x)
     model_partial = Model(inputs=input_layer, outputs=x)
 
     # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)

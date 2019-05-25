@@ -37,7 +37,7 @@ test_split = 0.15
 batch_size = 64
 
 # img_dim = (90, 320)
-img_dim = (70, 320)
+img_dim = (80, 320)
 ########################################################################################################################
 # Load and prepare the data
 ########################################################################################################################
@@ -105,7 +105,7 @@ for idx in range(1):
     filename = log_df.at[gt_ID[idx], 'center']
     filename = filename[filename.find('Datasets')+9:]
     show_image_with_steering_cmd(gt_img[idx]*0.5+0.5, gt_commands[idx], filename)
-
+    plt.show()
 
 # Look at the distribution of the generator output
 steering_cmds = np.empty(50*batch_size)
@@ -130,21 +130,18 @@ from keras import regularizers
 
 
 def NvidiaCNN(input_layer):
-    x = BatchNormalization()(input_layer)
-    x = Conv2D(filters=3, kernel_size=5, strides=(2, 2), activation='relu')(x)
+    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu')(input_layer)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu')(x)
+    x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu')(x)
+    x = Conv2D(filters=12, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=48, kernel_size=3, activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = Conv2D(filters=64, kernel_size=3, activation='relu')(x)
+    x = Conv2D(filters=16, kernel_size=3, activation='relu')(x)
     x = BatchNormalization()(x)
     x = Flatten()(x)
-    x = Dense(units=100, activation='tanh')(x)
     x = Dense(units=50, activation='tanh')(x)
-    x = Dense(units=10, activation='tanh')(x)
+    x = Dense(units=25, activation='tanh')(x)
+    x = Dense(units=5, activation='tanh')(x)
     x = Dense(units=1, activation='tanh')(x)
     return x
 
