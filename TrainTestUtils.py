@@ -47,7 +47,7 @@ def crop(image):
     Crop the image (removing the sky at the top and the car front at the bottom)
     """
     # return image[60:-10, :, :] # remove the sky and the car front
-    return image[65:-15, :, :] # remove the sky and the car front
+    return image[65:-25, :, :] # remove the sky and the car front
 
 def separate(data, valid_split=0.2, test_split=0.2, shuffle=True):
     """
@@ -88,7 +88,6 @@ def show_image_with_steering_cmd(image, steering_cmd, title=""):
 
     plt.title(title)
 
-    plt.show()
 
 def plot_history(network_history):
     plt.figure()

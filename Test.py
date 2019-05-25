@@ -25,7 +25,7 @@ from TrainTestUtils import *
 # PARAMETERS
 ########################################################################################################################
 batch_size = 256
-img_dim = (90, 320)
+img_dim = (70, 320)
 valid_split = 0.15
 test_split = 0.15
 
@@ -92,7 +92,65 @@ def JointPlotTest(model, img_ids, log_df,img_dim, batch_size=256,title="", scale
     print("===============================================================")
 
 
-JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test", scale=False)
-JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training", scale=False)
+# Build the network
+########################################################################################################################
+from keras.models import Model
+from keras.layers import Input
+from keras.layers.core import Dense, Dropout, Flatten
+from keras.layers.convolutional import Conv2D
+from keras.layers.normalization import BatchNormalization
+from keras.callbacks import EarlyStopping, ModelCheckpoint, CSVLogger
+from keras.optimizers import SGD, Adam
+from keras import regularizers
 
+# https://github.com/keras-team/keras/issues/41
+# https://github.com/keras-team/keras/issues/1479
+def PlotActivations(model, img_ids, log_df, img_dim, batch_size=256):
+    np.random.seed(0)
+    test_generator = DataGenerator(
+        img_ids,
+        log_df,
+        batch_size=batch_size,
+        dim=img_dim,
+        shuffle=False
+    )
+
+    input_layer = Input((*img_dim, 3))
+    x = BatchNormalization()(input_layer)
+    x = Conv2D(filters=3, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[2].get_weights())(x)
+    x = BatchNormalization()(x)
+    x = Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[4].get_weights())(x)
+    # x = BatchNormalization()(x)
+    # x = Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[6].get_weights())(x)
+    # x = BatchNormalization()(x)
+    # x = Conv2D(filters=48, kernel_size=3, activation='relu', weights=model.layers[8].get_weights())(x)
+    # x = BatchNormalization()(x)
+    # x = Conv2D(filters=64, kernel_size=3, activation='relu', weights=model.layers[10].get_weights())(x)
+    model_partial = Model(inputs=input_layer, outputs=x)
+
+    # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
+    model_partial.compile(optimizer=Adam(), loss='mse')
+
+    test_img, test_commands = test_generator.__getitem__(1)
+    activations = model_partial.predict(test_img)
+
+    print(activations.shape)
+
+    show_image_with_steering_cmd(test_img[0] * 0.5 + 0.5, test_commands[0])
+    plt.figure()
+
+    for idx in range(activations.shape[3]):
+        plt.subplot(int(activations.shape[3]/2+0.5), 2, idx+1)
+        plt.imshow(activations[0, :, :, idx])
+        plt.axis('off')
+
+    plt.figure()
+    plt.imshow(np.average(activations[0, :, :, :], axis=2))
+
+# JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test", scale=False)
+# JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training", scale=False)
+# plt.show()
+
+
+PlotActivations(model, test_img_ids, log_df, img_dim, batch_size)
 plt.show()
