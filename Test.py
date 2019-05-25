@@ -86,7 +86,7 @@ def JointPlotTest(model, img_ids, log_df,img_dim, batch_size=256,title="", scale
 
 
 
-JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test regression plot", scale=True)
-JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training regression plot", scale=True)
+JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test regression plot", scale=False)
+JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training regression plot", scale=False)
 
 plt.show()

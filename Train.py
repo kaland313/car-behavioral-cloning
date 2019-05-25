@@ -48,23 +48,34 @@ print(log_df.shape)
 
 
 # Split the data
-train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split,shuffle=True)
-np.save("train_img_ids.npy", train_img_ids)
-np.save("valid_img_ids.npy", valid_img_ids)
-np.save("test_img_ids.npy", test_img_ids)
-
-plt.hist(log_df.loc[:,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
+train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split, shuffle=True)
+plt.hist(log_df.loc[train_img_ids, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 
 #Scale the data
 # scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
 # log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
 
+filtered_train_img_id = []
+for img_id in train_img_ids:
+    if abs(log_df.at[img_id, 'steering']) < 0.001:
+        if np.random.random_sample() < 0.01:
+            filtered_train_img_id.append(img_id)
+    else:
+        filtered_train_img_id.append(img_id)
 
-plt.hist(log_df.loc[:,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
+
+# train_img_ids = filtered_train_img_id
+
+plt.hist(log_df.loc[filtered_train_img_id,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 plt.show()
 
+np.save("train_img_ids.npy", train_img_ids)
+np.save("valid_img_ids.npy", valid_img_ids)
+np.save("test_img_ids.npy", test_img_ids)
+
+
 training_generator = DataGenerator(
-    train_img_ids,
+    filtered_train_img_id,
     log_df,
     batch_size=batch_size,
     dim=img_dim
@@ -138,7 +149,7 @@ final_layer = NvidiaCNN(input_layer)
 model = Model(inputs=input_layer, outputs=final_layer)
 
 # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer=Adam(), loss='mae')
+model.compile(optimizer=Adam(), loss='mse')
 print(model.summary())
 
 ########################################################################################################################
