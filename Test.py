@@ -4,6 +4,7 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
+from sklearn import metrics
 
 ########################################################################################################################
 # Setup tensorflow to run on CPU
@@ -81,12 +82,17 @@ def JointPlotTest(model, img_ids, log_df,img_dim, batch_size=256,title="", scale
                          data=test_data, xlim=(-1, 1), ylim=(-1, 1))
     grid = grid.plot_joint(sns.regplot)
     grid.plot_marginals(sns.distplot, kde=False)
+    grid.annotate(metrics.mean_squared_error, template="{stat}: {val:.4f}", stat="$MSE$");
     plt.subplots_adjust(top=0.9)
-    grid.fig.suptitle(title)
+    grid.fig.suptitle(title + " regression plot")
+    print("===============================================================")
+    print(title + " metrics")
+    print("MSE = ", metrics.mean_squared_error(test_commands,test_preds))
+    print("MAE = ", metrics.mean_absolute_error(test_commands, test_preds))
+    print("===============================================================")
 
 
-
-JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test regression plot", scale=False)
-JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training regression plot", scale=False)
+JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test", scale=False)
+JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training", scale=False)
 
 plt.show()
