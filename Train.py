@@ -56,8 +56,8 @@ np.save("test_img_ids.npy", test_img_ids)
 plt.hist(log_df.loc[:,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 
 #Scale the data
-scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
-log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
+# scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
+# log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
 
 
 plt.hist(log_df.loc[:,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
@@ -122,12 +122,12 @@ def NvidiaCNN(input_layer):
     x = Conv2D(filters=64, kernel_size=3, activation='relu')(x)
     x = BatchNormalization()(x)
     x = Flatten()(x)
-    x = Dense(units=100, activation='relu')(x)
+    x = Dense(units=100, activation='tanh')(x)
     # x = Dropout(0.25)(x)
-    x = Dense(units=50, activation='relu')(x)
+    x = Dense(units=50, activation='tanh')(x)
     # x = Dropout(0.25)(x)
-    x = Dense(units=10, activation='relu')(x)
-    x = Dense(units=1, activation='linear')(x)
+    x = Dense(units=10, activation='tanh')(x)
+    x = Dense(units=1, activation='tanh')(x)
 
     return x
 
@@ -138,7 +138,7 @@ final_layer = NvidiaCNN(input_layer)
 model = Model(inputs=input_layer, outputs=final_layer)
 
 # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer=Adam(), loss='mse')
+model.compile(optimizer=Adam(), loss='mae')
 print(model.summary())
 
 ########################################################################################################################
