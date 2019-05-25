@@ -50,8 +50,18 @@ pd.options.display.max_colwidth = 150
 print(log_df['center'][:10])
 
 
+filtered_train_img_id = []
+for img_id in log_df.index.values:
+    if abs(log_df.at[img_id, 'steering']) < 0.001:
+        if np.random.random_sample() < 0.001:
+            filtered_train_img_id.append(img_id)
+    else:
+        filtered_train_img_id.append(img_id)
+
+# train_img_ids = filtered_train_img_id
+
 # Split the data
-train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split)
+train_img_ids, valid_img_ids, test_img_ids = separate(filtered_train_img_id, valid_split, test_split)
 # plt.hist(log_df.loc[train_img_ids, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 # plt.show()
 
@@ -59,15 +69,7 @@ train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid
 # scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
 # log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
 
-filtered_train_img_id = []
-for img_id in train_img_ids:
-    if abs(log_df.at[img_id, 'steering']) < 0.001:
-        if np.random.random_sample() < 0.001:
-            filtered_train_img_id.append(img_id)
-    else:
-        filtered_train_img_id.append(img_id)
 
-train_img_ids = filtered_train_img_id
 
 # plt.hist(log_df.loc[filtered_train_img_id, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 # plt.show()

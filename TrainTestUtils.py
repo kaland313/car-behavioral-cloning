@@ -50,7 +50,7 @@ def separate(data, valid_split=0.2, test_split=0.2, shuffle=True):
     returns the train, valid and test data sets
     """
 
-    sum_ = data.shape[0]
+    sum_ = len(data)
 
     train = data[:int(sum_ * (1 - valid_split - test_split))]
     valid = data[int(sum_ * (1 - valid_split - test_split)):int(sum_ * (1 - test_split))]
