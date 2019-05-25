@@ -55,9 +55,9 @@ np.save("test_img_ids.npy", test_img_ids)
 
 plt.hist(log_df.loc[:,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 
-# Scale the data
-# scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
-# log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
+#Scale the data
+scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
+log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
 
 
 plt.hist(log_df.loc[:,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
@@ -127,7 +127,7 @@ def NvidiaCNN(input_layer):
     x = Dense(units=50, activation='relu')(x)
     # x = Dropout(0.25)(x)
     x = Dense(units=10, activation='relu')(x)
-    x = Dense(units=1, activation='tanh')(x)
+    x = Dense(units=1, activation='linear')(x)
 
     return x
 

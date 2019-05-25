@@ -60,8 +60,8 @@ def telemetry(sid, data):
             image = np.array([image])       # the model expects 4D array
 
             # predict the steering angle for the image
-            # steering_angle = float(scaler.inverse_transform(model.predict(image, batch_size=1)))
-            steering_angle = float(model.predict(image, batch_size=1))
+            steering_angle = float(scaler.inverse_transform(model.predict(image, batch_size=1)))
+            # steering_angle = float(model.predict(image, batch_size=1))
             # lower the throttle as the speed increases
             # if the speed is above the current speed limit, we are on a downhill.
             # make sure we slow down first and then go back to the original max speed.

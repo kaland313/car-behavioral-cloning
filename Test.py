@@ -37,8 +37,6 @@ train_img_ids = np.load("train_img_ids.npy")
 valid_img_ids = np.load("valid_img_ids.npy")
 test_img_ids = np.load("test_img_ids.npy")
 
-# scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
-
 # model = load_model("models/model.15-0.056.hdf5")
 model = load_model("model.hdf5")
 ########################################################################################################################
@@ -57,7 +55,7 @@ model = load_model("model.hdf5")
 # plt.ylabel("Predicted steering commands")
 # plt.show()
 
-def JointPlotTest(model, img_ids, log_df,img_dim, batch_size=256,title=""):
+def JointPlotTest(model, img_ids, log_df,img_dim, batch_size=256,title="", scale = False):
     np.random.seed(0)
     test_generator = DataGenerator(
         img_ids,
@@ -67,8 +65,14 @@ def JointPlotTest(model, img_ids, log_df,img_dim, batch_size=256,title=""):
         shuffle=False
     )
 
+    scaler = preprocessing.StandardScaler(with_mean=False).fit(
+        log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
+
     test_img, test_commands = test_generator.__getitem__(0)  # returns batch 0
-    test_preds = model.predict(test_img)
+    if scale:
+        test_preds = scaler.inverse_transform([model.predict(test_img)])
+    else:
+        test_preds = model.predict(test_img)
 
     # https://seaborn.pydata.org/generated/seaborn.JointGrid.html#seaborn.JointGrid
     test_data = pd.DataFrame(np.transpose([test_commands, test_preds.reshape(-1)]))
@@ -82,7 +86,7 @@ def JointPlotTest(model, img_ids, log_df,img_dim, batch_size=256,title=""):
 
 
 
-JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test regression plot")
-JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training regression plot")
+JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test regression plot", scale=True)
+JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training regression plot", scale=True)
 
 plt.show()
