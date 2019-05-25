@@ -1,10 +1,27 @@
 ########################################################################################################################
 # Imports
 ########################################################################################################################
+import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
 from sklearn import metrics
+
+import matplotlib.pylab as pl
+from matplotlib.colors import ListedColormap
+
+cmap = pl.cm.viridis
+my_cmap = cmap(np.arange(cmap.N))
+my_cmap[:, -1] = np.linspace(0, 1, cmap.N)
+my_cmap = ListedColormap(my_cmap)
+
+
+# cmap = pl.cm.winter
+# my_cmap = cmap(np.arange(cmap.N))
+# threshold = 0.6
+# my_cmap[:int(cmap.N*threshold), -1] = 0
+# my_cmap[int(cmap.N*(1-threshold)):, -1] = 0.75
+# my_cmap = ListedColormap(my_cmap)
 
 ########################################################################################################################
 # Setup tensorflow to run on CPU
@@ -25,7 +42,7 @@ from TrainTestUtils import *
 # PARAMETERS
 ########################################################################################################################
 batch_size = 256
-img_dim = (80, 320)
+img_dim = (90, 320)
 valid_split = 0.15
 test_split = 0.15
 
@@ -39,7 +56,9 @@ valid_img_ids = np.load("valid_img_ids.npy")
 test_img_ids = np.load("test_img_ids.npy")
 
 # model = load_model("models/model.15-0.056.hdf5")
-model = load_model("model.hdf5")
+model = load_model("models/model-IIT"
+                   ""
+                   ".hdf5")
 ########################################################################################################################
 # Test the network
 ########################################################################################################################
@@ -115,37 +134,84 @@ def PlotActivations(model, img_ids, log_df, img_dim, batch_size=256):
         shuffle=False
     )
 
-    input_layer = Input((*img_dim, 3))
-    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[1].get_weights())(input_layer)
-    x = BatchNormalization()(x)
-    x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[3].get_weights())(x)
+    # input_layer = Input((*img_dim, 3))
+    # x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[1].get_weights())(input_layer)
     # x = BatchNormalization()(x)
-    # x = Conv2D(filters=12, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[5].get_weights())(x)
-    # x = BatchNormalization()(x)
-    # x = Conv2D(filters=16, kernel_size=3, activation='relu', weights=model.layers[7].get_weights())(x)
-    model_partial = Model(inputs=input_layer, outputs=x)
+    # x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[3].get_weights())(x)
+    # # x = BatchNormalization()(x)
+    # # x = Conv2D(filters=12, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[5].get_weights())(x)
+    # # x = BatchNormalization()(x)
+    # # x = Conv2D(filters=16, kernel_size=3, activation='relu', weights=model.layers[7].get_weights())(x)
+    # model_partial = Model(inputs=input_layer, outputs=x)
 
-    # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
+    input_layer = Input((*img_dim, 3))
+    x = BatchNormalization()(input_layer)
+    x = Conv2D(filters=3, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[2].get_weights())(x)
+    x = BatchNormalization()(x)
+    x = Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[4].get_weights())(x)
+    x = BatchNormalization()(x)
+    x = Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[6].get_weights())(x)
+    x = BatchNormalization()(x)
+    x = Conv2D(filters=48, kernel_size=3, activation='relu', weights=model.layers[8].get_weights())(x)
+    model_partial = Model(inputs=input_layer, outputs=x)
     model_partial.compile(optimizer=Adam(), loss='mse')
 
-    test_img, test_commands = test_generator.__getitem__(1)
+    test_img, test_commands = test_generator.__getitem__(8)
+    # activations = model_partial.predict(test_img)
+    #
+    # # show_image_with_steering_cmd(test_img[0] * 0.5 + 0.5, test_commands[0])
+    # plt.subplot(2,1,1)
+    # plt.imshow(test_img[0] * 0.5 + 0.5)
+    # plt.axis('off')
+    # plt.imshow(cv2.resize(np.average(activations[0, :, :, :], axis=2), img_dim[::-1]), cmap=my_cmap)
+    # plt.subplot(2, 1, 2)
+    # plt.imshow(cv2.resize(np.average(activations[0, :, :, :], axis=2), img_dim[::-1]))
+    # plt.axis('off')
+    # plt.tight_layout(pad=0, w_pad=0, h_pad=0)
+    # plt.figure()
+    #
+    # for idx in range(activations.shape[3]):
+    #     plt.subplot(int(activations.shape[3]/2+0.5), 2, idx+1)
+    #     plt.imshow(activations[0, :, :, idx])
+    #     plt.axis('off')
+    #
+    # plt.tight_layout(pad=0, w_pad=0, h_pad=0)
+
+    # Nvidia salient object detection
+    layer_outputs = [model_partial.layers[8].output,
+                     model_partial.layers[6].output,
+                     model_partial.layers[4].output,
+                     model_partial.layers[2].output]
+    model_partial = Model(inputs=input_layer, outputs=layer_outputs)
     activations = model_partial.predict(test_img)
+    print(len(activations), activations[0].shape)
 
-    print(activations.shape)
+    salient_map = np.ones(activations[0][0, :, :, 0].shape)
 
-    show_image_with_steering_cmd(test_img[0] * 0.5 + 0.5, test_commands[0])
+    for idx in range(len(activations)):
+        print(activations[idx].shape)
+        # averaging of feature maps and element wise multiplication with previous layer's salient map
+        salient_map = np.multiply(salient_map, np.average(activations[idx][0, :, :, :], axis=2))
+        print(salient_map.shape)
+        if idx < len(activations)-1:
+            salient_map = cv2.resize(salient_map, activations[idx+1][0, :, :, 0].shape[::-1])
+
+    salient_map = cv2.resize(salient_map, img_dim[::-1])
     plt.figure()
+    plt.subplot(211)
+    plt.imshow(test_img[0] * 0.5 + 0.5)
+    image = plt.imshow(salient_map, cmap=my_cmap)
+    plt.axis('off')
+    plt.subplot(212)
+    plt.imshow(salient_map)
+    plt.axis('off')
 
-    for idx in range(activations.shape[3]):
-        plt.subplot(int(activations.shape[3]/2+0.5), 2, idx+1)
-        plt.imshow(activations[0, :, :, idx])
-        plt.axis('off')
+    plt.imsave("img.png", test_img[0] * 0.5 + 0.5)
+    plt.imsave("salient-map-transparent.png", salient_map, cmap=my_cmap)
+    plt.imsave("salient-map.png", salient_map)
 
-    plt.figure()
-    plt.imshow(np.average(activations[0, :, :, :], axis=2))
-
-# JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test", scale=False)
-# JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training", scale=False)
+# JointPlotTest(load_model("models/model-IIT.hdf5"), test_img_ids, log_df, img_dim, batch_size, "model-IIT.hdf5", scale=False)
+# JointPlotTest(load_model("models/model-IIT-retrained.hdf5"), test_img_ids, log_df, img_dim, batch_size, "model-IIT-retrained.hdf5", scale=False)
 # plt.show()
 
 
