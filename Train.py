@@ -112,21 +112,21 @@ def NvidiaCNN(input_layer):
     # x = Conv2D(filters=3, kernel_size=5, strides=(2, 2), activation='relu')(x)
     # x = BatchNormalization()(x)
     x = Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu')(input_layer)
-    # x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu')(x)
-    # x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = Conv2D(filters=48, kernel_size=5, strides=(2, 2), activation='relu')(x)
-    # x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = Conv2D(filters=64, kernel_size=3, activation='relu')(x)
-    # x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = Conv2D(filters=64, kernel_size=3, activation='relu')(x)
-    # x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
     x = Flatten()(x)
-    x = Dense(units=100, activation='tanh')(x)
+    x = Dense(units=100, activation='relu')(x)
     # x = Dropout(0.25)(x)
-    x = Dense(units=50, activation='tanh')(x)
+    x = Dense(units=50, activation='relu')(x)
     # x = Dropout(0.25)(x)
-    x = Dense(units=10, activation='tanh')(x)
+    x = Dense(units=10, activation='relu')(x)
     x = Dense(units=1, activation='tanh')(x)
 
     return x
@@ -145,7 +145,7 @@ print(model.summary())
 # Train the network
 ########################################################################################################################
 
-early_stopping=EarlyStopping(patience=10, verbose=1)
+early_stopping=EarlyStopping(patience=15, verbose=1)
 checkpointer=ModelCheckpoint(filepath='model.hdf5', save_best_only=True, verbose=1)
 # checkpointer=ModelCheckpoint(filepath='models/model.{epoch:02d}-{val_loss:.3f}.hdf5', save_best_only=False, verbose=1, period=5)
 
@@ -156,5 +156,7 @@ history = model.fit_generator(generator=training_generator,
                               validation_steps=len(validation_generator),
                               callbacks=[checkpointer, early_stopping],
                               verbose=1)
+
+model.save('model-fin.hdf5')
 
 plot_history(history)

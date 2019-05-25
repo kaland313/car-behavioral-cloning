@@ -44,17 +44,6 @@ model = load_model("model.hdf5")
 ########################################################################################################################
 # Test the network
 ########################################################################################################################
-np.random.seed(0)
-test_generator = DataGenerator(
-    test_img_ids,
-    log_df,
-    batch_size=batch_size,
-    dim=img_dim,
-    shuffle=False
-)
-
-test_img, test_commands = test_generator.__getitem__(0)  # returns batch 0
-test_preds = model.predict(test_img)
 
 # Prediction histogram
 # print(test_preds)
@@ -62,11 +51,38 @@ test_preds = model.predict(test_img)
 # plt.show()
 
 # Regplot
-plt.figure()
+# plt.figure()
 # sns.regplot(x=test_commands, y=preds.reshape(-1)).set(xlim=(10,30),ylim=(10,30));
-print(test_commands.shape)
-print(test_preds.reshape(-1).shape)
-sns.regplot(x=test_commands, y=test_preds.reshape(-1)).set(xlim=(-1,1),ylim=(-1,1));
-plt.xlabel("Ground truth steering commands")
-plt.ylabel("Predicted steering commands")
+# plt.xlabel("Ground truth steering commands")
+# plt.ylabel("Predicted steering commands")
+# plt.show()
+
+def JointPlotTest(model, img_ids, log_df,img_dim, batch_size=256,title=""):
+    np.random.seed(0)
+    test_generator = DataGenerator(
+        img_ids,
+        log_df,
+        batch_size=batch_size,
+        dim=img_dim,
+        shuffle=False
+    )
+
+    test_img, test_commands = test_generator.__getitem__(0)  # returns batch 0
+    test_preds = model.predict(test_img)
+
+    # https://seaborn.pydata.org/generated/seaborn.JointGrid.html#seaborn.JointGrid
+    test_data = pd.DataFrame(np.transpose([test_commands, test_preds.reshape(-1)]))
+    test_data.columns = ["Ground truth steering commands", "Predicted steering commands"]
+    grid = sns.JointGrid(x="Ground truth steering commands", y="Predicted steering commands",
+                         data=test_data, xlim=(-1, 1), ylim=(-1, 1))
+    grid = grid.plot_joint(sns.regplot)
+    grid.plot_marginals(sns.distplot, kde=False)
+    plt.subplots_adjust(top=0.9)
+    grid.fig.suptitle(title)
+
+
+
+JointPlotTest(model, test_img_ids, log_df, img_dim, batch_size, "Test regression plot")
+JointPlotTest(model, train_img_ids, log_df, img_dim, batch_size, "Training regression plot")
+
 plt.show()
