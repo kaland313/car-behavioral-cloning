@@ -10,7 +10,6 @@ import imageio
 import cv2
 from tqdm import tqdm
 
-from utils import *
 
 from keras.utils import Sequence
 from keras.applications import imagenet_utils
@@ -25,11 +24,10 @@ set_session(tf.Session(config=config))
 # Import function definitions
 ##################################################################################################
 from TrainTestUtils import *
-
+from Paths import *
 ########################################################################################################################
 # PARAMETERS
 ########################################################################################################################
-output_loc=''
 
 valid_split = 0.15
 test_split = 0.15
@@ -76,9 +74,9 @@ train_img_ids = filtered_train_img_id
 # plt.hist(log_df.loc[filtered_train_img_id, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 # plt.show()
 
-np.save(output_loc + "train_img_ids.npy", train_img_ids)
-np.save(output_loc + "valid_img_ids.npy", valid_img_ids)
-np.save(output_loc + "test_img_ids.npy", test_img_ids)
+np.save(trainig_file_path + "train_img_ids.npy", train_img_ids)
+np.save(trainig_file_path + "valid_img_ids.npy", valid_img_ids)
+np.save(trainig_file_path + "test_img_ids.npy", test_img_ids)
 
 
 training_generator = DataGenerator(
@@ -159,9 +157,9 @@ print(model.summary())
 ########################################################################################################################
 
 early_stopping = EarlyStopping(patience=10, verbose=1)
-checkpointer = ModelCheckpoint(filepath=output_loc + 'model.hdf5', save_best_only=True, verbose=1)
-csv_logger = CSVLogger(output_loc + 'training_history.log')
-# checkpointer=ModelCheckpoint(filepath='models/model.{epoch:02d}-{val_loss:.3f}.hdf5', save_best_only=False, verbose=1, period=5)
+checkpointer = ModelCheckpoint(filepath=trainig_file_path + 'model.hdf5', save_best_only=True, verbose=1)
+csv_logger = CSVLogger(trainig_file_path + 'training_history.log')
+# checkpointer=ModelCheckpoint(filepath=trainig_file_path + '/model.{epoch:02d}-{val_loss:.3f}.hdf5', save_best_only=False, verbose=1, period=5)
 
 history = model.fit_generator(generator=training_generator,
                               steps_per_epoch=len(training_generator),
@@ -171,6 +169,6 @@ history = model.fit_generator(generator=training_generator,
                               callbacks=[checkpointer, early_stopping, csv_logger],
                               verbose=1)
 
-model.save(output_loc + 'model-fin.hdf5')
+model.save(model_path + 'model-fin.hdf5')
 
 plot_history(history)

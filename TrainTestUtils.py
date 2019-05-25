@@ -9,12 +9,9 @@ import imageio
 import cv2
 from tqdm import tqdm
 
-from utils import *
-
 from keras.utils import Sequence
 from keras.applications import imagenet_utils
 from keras.models import load_model
-
 
 from keras.utils import Sequence
 from keras.applications import imagenet_utils
@@ -46,8 +43,8 @@ def crop(image):
     """
     Crop the image (removing the sky at the top and the car front at the bottom)
     """
-    # return image[60:-10, :, :] # remove the sky and the car front
-    return image[90:-20, :, :] # remove the sky and the car front
+    return image[60:-10, :, :] # remove the sky and the car front
+    # return image[65:-15, :, :] # remove the sky and the car front
 
 def separate(data, valid_split=0.2, test_split=0.2, shuffle=True):
     """
