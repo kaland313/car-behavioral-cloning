@@ -7,11 +7,16 @@ import matplotlib.pyplot as plt
 
 import imageio
 import cv2
-from tqdm import tqdm
+# from tqdm import tqdm
 
 from keras.utils import Sequence
 from keras.applications import imagenet_utils
 
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
 ########################################################################################################################
 # Function definitions
 ##################################################################################################
@@ -127,7 +132,7 @@ class DataGenerator(Sequence):
 # log_csv_path = 'driving_log_correct.csv'
 # data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/Udacity data/'
 # log_csv_path = 'driving_log.csv'
-data_path  = '/home/andras/AIDriver/Udacity data'
+data_path  = '/home/andras/AIDriver/Udacity data/'
 log_csv_path = 'driving_log.csv'
 
 valid_split = 0.15
@@ -178,14 +183,14 @@ plt.axis('off')
 plt.show()
 
 
-steering_cmds = np.empty(20*batch_size)
-for idx in tqdm(range(20)):
-    gt_img, gt_commands = training_generator.__getitem__(idx)
-    steering_cmds[idx*batch_size:(idx+1)*batch_size] = gt_commands.flatten()
-
-print(min(steering_cmds), max(steering_cmds))
-plt.hist(steering_cmds, range=(-1, 1), bins=20)
-plt.show()
+# steering_cmds = np.empty(20*batch_size)
+# for idx in tqdm(range(20)):
+#     gt_img, gt_commands = training_generator.__getitem__(idx)
+#     steering_cmds[idx*batch_size:(idx+1)*batch_size] = gt_commands.flatten()
+#
+# print(min(steering_cmds), max(steering_cmds))
+# plt.hist(steering_cmds, range=(-1, 1), bins=20)
+# plt.show()
 
 
 # Build the network
