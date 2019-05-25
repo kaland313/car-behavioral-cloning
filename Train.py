@@ -9,6 +9,8 @@ import imageio
 import cv2
 # from tqdm import tqdm
 
+from utils import *
+
 from keras.utils import Sequence
 from keras.applications import imagenet_utils
 
@@ -49,7 +51,7 @@ def plot_history(network_history):
 # Reference: https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
 class DataGenerator(Sequence):
     def __init__(self, list_IDs, drive_log_df, img_path_prefix, batch_size=32, dim=(32, 32, 32),
-                 n_channels=3, shuffle=True, side_camera_correction=0.2):
+                 n_channels=3, shuffle=True, side_camera_correction=0.2, crop = True):
         # Initialization
         self.dim = dim  # dataset's dimension
         self.img_prefix = img_path_prefix  # location of the dataset
@@ -59,6 +61,7 @@ class DataGenerator(Sequence):
         self.n_channels = n_channels  # number of channels in the photo (RGB)
         self.shuffle = shuffle  # shuffle the data
         self.side_camera_correction = side_camera_correction
+        self.crop = True
         # np.random.seed(123)
 
         self.on_epoch_end()
@@ -102,10 +105,15 @@ class DataGenerator(Sequence):
             img_path = self.img_prefix + self.drive_log_df.iat[ID, camera]
             img = imageio.imread(img_path)
             # img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
-            X[i] = imagenet_utils.preprocess_input(img, mode='tf')
-            if X[i].shape[0:2] != self.dim:
-                X[i] = cv2.resize(X[i], self.dim)
 
+            if self.crop:
+                img = crop(img)
+
+            if img.shape[0:2] != self.dim:
+                print("Reshaping")
+                img = cv2.resize(img, self.dim)
+
+            X[i] = imagenet_utils.preprocess_input(img, mode='tf')
             Y[i] = self.drive_log_df.at[ID, 'steering']
 
             # if camera == 1:
@@ -120,32 +128,30 @@ class DataGenerator(Sequence):
                 X[i] = cv2.flip(X[i], 1)
                 Y[i] *= (-1.0)
 
-
-
         return X, Y
 
 
 ########################################################################################################################
 # PARAMETERS
 ########################################################################################################################
-# data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/Bandy data/'
-# log_csv_path = 'driving_log_correct.csv'
+data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/WASD data/'
+log_csv_path = 'driving_log_correct.csv'
 # data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/Udacity data/'
 # log_csv_path = 'driving_log.csv'
-data_path  = '/home/andras/AIDriver/Udacity data/'
-log_csv_path = 'driving_log.csv'
+# data_path  = '/home/andras/AIDriver/Udacity data/'
+# log_csv_path = 'driving_log.csv'
 
 valid_split = 0.15
 test_split = 0.15
 
 batch_size = 64
 
-img_dim = (160, 320)
+img_dim = (90, 320)
 ########################################################################################################################
 # Load and prepare the data
 ########################################################################################################################
-# log_df = pd.read_csv(data_path + log_csv_path, sep=';', decimal=',')
-log_df = pd.read_csv(data_path + log_csv_path)
+log_df = pd.read_csv(data_path + log_csv_path, sep=';', decimal=',')
+# log_df = pd.read_csv(data_path + log_csv_path)
 log_df['center'] = log_df['center'].str.strip()
 log_df['right']  = log_df['right'].str.strip()
 log_df['left']   = log_df['left'].str.strip()
@@ -242,7 +248,7 @@ print(model.summary())
 # Train the network
 ########################################################################################################################
 
-patience=3
+patience=5
 early_stopping=EarlyStopping(patience=patience, verbose=1)
 checkpointer=ModelCheckpoint(filepath='model.hdf5', save_best_only=True, verbose=1)
 

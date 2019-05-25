@@ -14,6 +14,12 @@ from io import BytesIO
 
 from keras.models import load_model
 
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+set_session(tf.Session(config=config))
+
 import utils
 
 sio = socketio.Server()
@@ -46,6 +52,7 @@ def telemetry(sid, data):
         try:
             image = np.asarray(image)       # from PIL image to numpy array
             # image = utils.preprocess(image) # apply the preprocessing
+            image = utils.crop(image)
             image = np.array([image])       # the model expects 4D array
 
             # predict the steering angle for the image
