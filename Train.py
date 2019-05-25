@@ -50,24 +50,25 @@ print(log_df.shape)
 # Split the data
 train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split, shuffle=True)
 plt.hist(log_df.loc[train_img_ids, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
+plt.show()
 
 #Scale the data
 # scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
 # log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
 
-filtered_train_img_id = []
-for img_id in train_img_ids:
-    if abs(log_df.at[img_id, 'steering']) < 0.001:
-        if np.random.random_sample() < 0.01:
-            filtered_train_img_id.append(img_id)
-    else:
-        filtered_train_img_id.append(img_id)
-
-
+# filtered_train_img_id = []
+# for img_id in train_img_ids:
+#     if abs(log_df.at[img_id, 'steering']) < 0.001:
+#         if np.random.random_sample() < 0.01:
+#             filtered_train_img_id.append(img_id)
+#     else:
+#         filtered_train_img_id.append(img_id)
+#
+#
 # train_img_ids = filtered_train_img_id
-
-plt.hist(log_df.loc[filtered_train_img_id,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
-plt.show()
+#
+# plt.hist(log_df.loc[filtered_train_img_id,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
+#
 
 np.save("train_img_ids.npy", train_img_ids)
 np.save("valid_img_ids.npy", valid_img_ids)
@@ -75,7 +76,7 @@ np.save("test_img_ids.npy", test_img_ids)
 
 
 training_generator = DataGenerator(
-    filtered_train_img_id,
+    train_img_ids,
     log_df,
     batch_size=batch_size,
     dim=img_dim
@@ -133,6 +134,7 @@ def NvidiaCNN(input_layer):
     x = Conv2D(filters=64, kernel_size=3, activation='relu')(x)
     x = BatchNormalization()(x)
     x = Flatten()(x)
+    x = Dense(units=1000, activation='tanh')(x)
     x = Dense(units=100, activation='tanh')(x)
     # x = Dropout(0.25)(x)
     x = Dense(units=50, activation='tanh')(x)
