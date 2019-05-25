@@ -52,8 +52,8 @@ print(log_df['center'][:10])
 
 # Split the data
 train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split)
-plt.hist(log_df.loc[train_img_ids, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
-plt.show()
+# plt.hist(log_df.loc[train_img_ids, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
+# plt.show()
 
 #Scale the data
 # scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
@@ -62,16 +62,15 @@ plt.show()
 filtered_train_img_id = []
 for img_id in train_img_ids:
     if abs(log_df.at[img_id, 'steering']) < 0.001:
-        if np.random.random_sample() < 0.01:
+        if np.random.random_sample() < 0.001:
             filtered_train_img_id.append(img_id)
     else:
         filtered_train_img_id.append(img_id)
 
-
 train_img_ids = filtered_train_img_id
 
-plt.hist(log_df.loc[filtered_train_img_id,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
-plt.show()
+# plt.hist(log_df.loc[filtered_train_img_id, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
+# plt.show()
 
 np.save("train_img_ids.npy", train_img_ids)
 np.save("valid_img_ids.npy", valid_img_ids)
@@ -98,18 +97,17 @@ gt_ID = training_generator.get_last_batch_ImageIDs()
 print(gt_img.shape, gt_commands.shape)
 print(gt_commands[0])
 # plt.imshow(cv2.cvtColor(gt_img[0]*0.5+0.5, cv2.COLOR_RGB2YUV))
-for idx in range(1):
-    filename = log_df.at[gt_ID[idx], 'center']
-    filename = filename[filename.find('Datasets')+9:]
-    show_image_with_steering_cmd(gt_img[idx]*0.5+0.5, gt_commands[idx], filename)
+# for idx in range(1):
+#     filename = log_df.at[gt_ID[idx], 'center']
+#     filename = filename[filename.find('Datasets')+9:]
+#     show_image_with_steering_cmd(gt_img[idx]*0.5+0.5, gt_commands[idx], filename)
 
 
+# Look at the distribution of the generator output
 steering_cmds = np.empty(50*batch_size)
 for idx in tqdm(range(50)):
     gt_img, gt_commands = training_generator.__getitem__(idx)
     steering_cmds[idx*batch_size:(idx+1)*batch_size] = gt_commands.flatten()
-
-
 print(min(steering_cmds), max(steering_cmds))
 # np.set_printoptions(threshold=np.nan)
 plt.hist(steering_cmds, bins=np.arange(-0.95, 1.0, 0.1))
@@ -139,9 +137,7 @@ def NvidiaCNN(input_layer):
     x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dense(units=50, activation='tanh')(x)
-    # x = Dropout(0.25)(x)
     x = Dense(units=25, activation='tanh')(x)
-    # x = Dropout(0.25)(x)
     x = Dense(units=5, activation='tanh')(x)
     x = Dense(units=1, activation='tanh')(x)
 
