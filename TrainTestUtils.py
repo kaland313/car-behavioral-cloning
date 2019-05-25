@@ -47,7 +47,7 @@ def crop(image):
     Crop the image (removing the sky at the top and the car front at the bottom)
     """
     # return image[60:-10, :, :] # remove the sky and the car front
-    return image[80:, :, :] # remove the sky and the car front
+    return image[90:-20, :, :] # remove the sky and the car front
 
 def separate(data, valid_split=0.2, test_split=0.2, shuffle=True):
     """
