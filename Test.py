@@ -42,7 +42,7 @@ from TrainTestUtils import *
 # PARAMETERS
 ########################################################################################################################
 batch_size = 256
-img_dim = (90, 320)
+img_dim = (80, 320)
 valid_split = 0.15
 test_split = 0.15
 
@@ -56,9 +56,7 @@ valid_img_ids = np.load("valid_img_ids.npy")
 test_img_ids = np.load("test_img_ids.npy")
 
 # model = load_model("models/model.15-0.056.hdf5")
-model = load_model("models/model-IIT"
-                   ""
-                   ".hdf5")
+model = load_model("model.hdf5")
 ########################################################################################################################
 # Test the network
 ########################################################################################################################
@@ -134,29 +132,29 @@ def PlotActivations(model, img_ids, log_df, img_dim, batch_size=256):
         shuffle=False
     )
 
-    # input_layer = Input((*img_dim, 3))
-    # x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[1].get_weights())(input_layer)
-    # x = BatchNormalization()(x)
-    # x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[3].get_weights())(x)
-    # # x = BatchNormalization()(x)
-    # # x = Conv2D(filters=12, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[5].get_weights())(x)
-    # # x = BatchNormalization()(x)
-    # # x = Conv2D(filters=16, kernel_size=3, activation='relu', weights=model.layers[7].get_weights())(x)
-    # model_partial = Model(inputs=input_layer, outputs=x)
-
     input_layer = Input((*img_dim, 3))
-    x = BatchNormalization()(input_layer)
-    x = Conv2D(filters=3, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[2].get_weights())(x)
+    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[1].get_weights())(input_layer)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[4].get_weights())(x)
+    x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[3].get_weights())(x)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[6].get_weights())(x)
-    x = BatchNormalization()(x)
-    x = Conv2D(filters=48, kernel_size=3, activation='relu', weights=model.layers[8].get_weights())(x)
+    x = Conv2D(filters=12, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[5].get_weights())(x)
+    # x = BatchNormalization()(x)
+    # x = Conv2D(filters=16, kernel_size=3, activation='relu', weights=model.layers[7].get_weights())(x)
     model_partial = Model(inputs=input_layer, outputs=x)
+
+    # input_layer = Input((*img_dim, 3))
+    # x = BatchNormalization()(input_layer)
+    # x = Conv2D(filters=3, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[2].get_weights())(x)
+    # x = BatchNormalization()(x)
+    # x = Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[4].get_weights())(x)
+    # x = BatchNormalization()(x)
+    # x = Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu', weights=model.layers[6].get_weights())(x)
+    # x = BatchNormalization()(x)
+    # x = Conv2D(filters=48, kernel_size=3, activation='relu', weights=model.layers[8].get_weights())(x)
+    # model_partial = Model(inputs=input_layer, outputs=x)
     model_partial.compile(optimizer=Adam(), loss='mse')
 
-    test_img, test_commands = test_generator.__getitem__(8)
+    test_img, test_commands = test_generator.__getitem__(7)
     # activations = model_partial.predict(test_img)
     #
     # # show_image_with_steering_cmd(test_img[0] * 0.5 + 0.5, test_commands[0])
@@ -178,10 +176,9 @@ def PlotActivations(model, img_ids, log_df, img_dim, batch_size=256):
     # plt.tight_layout(pad=0, w_pad=0, h_pad=0)
 
     # Nvidia salient object detection
-    layer_outputs = [model_partial.layers[8].output,
-                     model_partial.layers[6].output,
-                     model_partial.layers[4].output,
-                     model_partial.layers[2].output]
+    layer_outputs = [model_partial.layers[5].output,
+                     model_partial.layers[3].output,
+                     model_partial.layers[1].output]
     model_partial = Model(inputs=input_layer, outputs=layer_outputs)
     activations = model_partial.predict(test_img)
     print(len(activations), activations[0].shape)
