@@ -226,9 +226,9 @@ def NvidiaCNN(input_layer):
     x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dense(units=100, activation='tanh')(x)
-    x = Dropout(0.5)(x)
+#    x = Dropout(0.5)(x)
     x = Dense(units=50, activation='tanh')(x)
-    x = Dropout(0.5)(x)
+#    x = Dropout(0.5)(x)
     x = Dense(units=10, activation='tanh')(x)
     x = Dense(units=1, activation='tanh')(x)
 
@@ -240,8 +240,8 @@ final_layer = NvidiaCNN(input_layer)
 
 model = Model(inputs=input_layer, outputs=final_layer)
 
-opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer=opt, loss='mse')
+#opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
+model.compile(optimizer='adam', loss='mse')
 print(model.summary())
 
 ########################################################################################################################
