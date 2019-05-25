@@ -50,11 +50,10 @@ def plot_history(network_history):
 
 # Reference: https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
 class DataGenerator(Sequence):
-    def __init__(self, list_IDs, drive_log_df, img_path_prefix, batch_size=32, dim=(32, 32, 32),
-                 n_channels=3, shuffle=True, side_camera_correction=0.2, crop = True):
+    def __init__(self, list_IDs, drive_log_df, batch_size=32, dim=(32, 32, 32),
+                 n_channels=3, shuffle=True, side_camera_correction=0.15, crop = True):
         # Initialization
         self.dim = dim  # dataset's dimension
-        self.img_prefix = img_path_prefix  # location of the dataset
         self.batch_size = batch_size  # number of data/epoch
         self.drive_log_df = drive_log_df.copy()  # a dataframe storing driving log and image filenames
         self.list_IDs = list_IDs  # a list containing indexes to be used by the generator
@@ -102,7 +101,7 @@ class DataGenerator(Sequence):
 
             camera = 0
 
-            img_path = self.img_prefix + self.drive_log_df.iat[ID, camera]
+            img_path = self.drive_log_df.iat[ID, camera]
             img = imageio.imread(img_path)
             # img = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
 
@@ -118,10 +117,10 @@ class DataGenerator(Sequence):
 
             # if camera == 1:
             #     # left camera
-            #     Y[i] += self.side_camera_correction + np.random.rand()*0.1
+            #     Y[i] += (self.side_camera_correction + np.random.rand()*0.1)
             # elif camera == 2:
             #     # right camera
-            #     Y[i] -= self.side_camera_correction + np.random.rand()*0.1
+            #     Y[i] -= (self.side_camera_correction + np.random.rand()*0.1)
 
             if np.random.random_integers(0, 1) == 1:
                 # print("Flippin images")
@@ -134,12 +133,10 @@ class DataGenerator(Sequence):
 ########################################################################################################################
 # PARAMETERS
 ########################################################################################################################
-data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/WASD data/'
-log_csv_path = 'driving_log_correct.csv'
-# data_path  = '/home/kalap/Documents/Onlab/Udacity CarND/Udacity data/'
-# log_csv_path = 'driving_log.csv'
-# data_path  = '/home/andras/AIDriver/Udacity data/'
-# log_csv_path = 'driving_log.csv'
+data_base_path = '/home/andras/AIDriver/Datasets/'
+# data_base_path = '/home/kalap/Documents/Onlab/Udacity CarND/Datasets/'
+datasets = ['Joystick nice/', 'WASD/', 'Joysink oversteer/', 'Udacity/']
+log_csv_path = 'driving_log.csv'
 
 valid_split = 0.15
 test_split = 0.15
@@ -150,16 +147,21 @@ img_dim = (90, 320)
 ########################################################################################################################
 # Load and prepare the data
 ########################################################################################################################
-log_df = pd.read_csv(data_path + log_csv_path, sep=';', decimal=',')
-# log_df = pd.read_csv(data_path + log_csv_path)
-log_df['center'] = log_df['center'].str.strip()
-log_df['right']  = log_df['right'].str.strip()
-log_df['left']   = log_df['left'].str.strip()
+log_df = pd.DataFrame()
+for dataset in datasets:
+    print("Loading", data_base_path + dataset + log_csv_path)
+    temp_df = pd.read_csv(data_base_path + dataset + log_csv_path)
+    temp_df['center'] = data_base_path + dataset + temp_df['center'].str.strip()
+    temp_df['right'] = data_base_path + dataset + temp_df['right'].str.strip()
+    temp_df['left'] = data_base_path + dataset + temp_df['left'].str.strip()
+    log_df = pd.concat([log_df, temp_df], axis=0, ignore_index=True)
+
 
 pd.set_option('max_columns', 7)
-pd.set_option('display.width', 160)
+pd.set_option('display.width', 250)
 print(log_df.head())
 print(log_df.describe())
+print(log_df.shape)
 # Split the data
 train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split)
 # np.save("test_img_ids.npy", test_img_ids)
@@ -167,7 +169,6 @@ train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid
 training_generator = DataGenerator(
     train_img_ids,
     log_df,
-    data_path,
     batch_size=batch_size,
     dim=img_dim
 )
@@ -175,7 +176,6 @@ training_generator = DataGenerator(
 validation_generator = DataGenerator(
     valid_img_ids,
     log_df,
-    data_path,
     batch_size=batch_size,
     dim=img_dim
 )
@@ -270,7 +270,6 @@ plot_history(history)
 test_generator = DataGenerator(
     test_img_ids,
     log_df,
-    data_path,
     batch_size=batch_size,
     dim=img_dim
 )
