@@ -136,8 +136,6 @@ def NvidiaCNN(input_layer):
     x = BatchNormalization()(x)
     x = Conv2D(filters=12, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
-    x = Conv2D(filters=16, kernel_size=3, activation='relu')(x)
-    x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dense(units=50, activation='tanh')(x)
     x = Dense(units=25, activation='tanh')(x)
