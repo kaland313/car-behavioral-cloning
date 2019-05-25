@@ -38,7 +38,7 @@ def load_datasets(datasets=('Joystick nice/', 'WASD/', 'Joysink oversteer/', 'Ud
 
     return log_df
 
-def separate(train_data, valid_split=0.2, test_split=0.2):
+def separate(data, valid_split=0.2, test_split=0.2, shuffle=True):
     """
     Separate the dataset into 3 different parts. Train, validation and test.
     train_data and test_data sets are 1D numpy arrays.
@@ -46,11 +46,14 @@ def separate(train_data, valid_split=0.2, test_split=0.2):
     returns the train, valid and test data sets
     """
 
-    sum_ = train_data.shape[0]
+    sum_ = data.shape[0]
 
-    train = train_data[:int(sum_ * (1 - valid_split - test_split))]
-    valid = train_data[int(sum_ * (1 - valid_split - test_split)):int(sum_ * (1 - test_split))]
-    test = train_data[int(sum_ * (1 - test_split)):]
+    if shuffle:
+        np.random.shuffle(data)
+
+    train = data[:int(sum_ * (1 - valid_split - test_split))]
+    valid = data[int(sum_ * (1 - valid_split - test_split)):int(sum_ * (1 - test_split))]
+    test = data[int(sum_ * (1 - test_split)):]
 
     return train, valid, test
 

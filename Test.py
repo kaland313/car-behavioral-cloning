@@ -3,6 +3,7 @@
 ########################################################################################################################
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn import preprocessing
 
 ########################################################################################################################
 # Setup tensorflow to run on CPU
@@ -24,16 +25,22 @@ from TrainTestUtils import *
 ########################################################################################################################
 batch_size = 256
 img_dim = (90, 320)
+valid_split = 0.15
+test_split = 0.15
 
 ########################################################################################################################
 # Load test data and model
 ########################################################################################################################
 log_df = load_datasets()
 
+train_img_ids = np.load("train_img_ids.npy")
+valid_img_ids = np.load("valid_img_ids.npy")
 test_img_ids = np.load("test_img_ids.npy")
 
+scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
+
 # model = load_model("models/model.15-0.056.hdf5")
-model = load_model("models/model-IIT-retrained.hdf5")
+model = load_model("model.hdf5")
 ########################################################################################################################
 # Test the network
 ########################################################################################################################
@@ -47,7 +54,7 @@ test_generator = DataGenerator(
 )
 
 test_img, test_commands = test_generator.__getitem__(0)  # returns batch 0
-test_preds = model.predict(test_img)
+test_preds = scaler.inverse_transform(model.predict(test_img))
 
 # Prediction histogram
 # print(test_preds)

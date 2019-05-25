@@ -48,15 +48,17 @@ print(log_df.shape)
 
 
 # Split the data
-train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split)
+train_img_ids, valid_img_ids, test_img_ids = separate(log_df.index.values, valid_split, test_split,shuffle=True)
+np.save("train_img_ids.npy", train_img_ids)
+np.save("valid_img_ids.npy", valid_img_ids)
 np.save("test_img_ids.npy", test_img_ids)
 
 plt.hist(log_df.loc[:,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
-plt.show()
+
 # Scale the data
 scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
 log_df['steering'] = scaler.transform(log_df['steering'].values.reshape((-1, 1)))
-np.save("scaler.npy", scaler)
+
 
 plt.hist(log_df.loc[:,'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 plt.show()
@@ -92,7 +94,6 @@ print(min(steering_cmds), max(steering_cmds))
 plt.hist(steering_cmds, bins=np.arange(-0.95, 1.0, 0.1))
 plt.show()
 
-
 # Build the network
 ########################################################################################################################
 from keras.models import Model
@@ -101,7 +102,7 @@ from keras.layers.core import Dense, Dropout, Flatten
 from keras.layers.convolutional import Conv2D
 from keras.layers.normalization import BatchNormalization
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Adam
 from keras import regularizers
 
 
@@ -137,7 +138,7 @@ final_layer = NvidiaCNN(input_layer)
 model = Model(inputs=input_layer, outputs=final_layer)
 
 # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer='adam', loss='mse')
+model.compile(optimizer=Adam(), loss='mse')
 print(model.summary())
 
 ########################################################################################################################

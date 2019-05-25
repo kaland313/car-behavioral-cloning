@@ -14,6 +14,8 @@ from io import BytesIO
 
 from keras.models import load_model
 
+from sklearn import preprocessing
+
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
 config = tf.ConfigProto(device_count = {'GPU': 0}) # Use CPU for the testing
@@ -22,6 +24,7 @@ set_session(tf.Session(config=config))
 
 
 import utils
+from TrainTestUtils import *
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -57,7 +60,7 @@ def telemetry(sid, data):
             image = np.array([image])       # the model expects 4D array
 
             # predict the steering angle for the image
-            steering_angle = float(model.predict(image, batch_size=1))
+            steering_angle = float(scaler.inverse_transform(model.predict(image, batch_size=1)))
             # lower the throttle as the speed increases
             # if the speed is above the current speed limit, we are on a downhill.
             # make sure we slow down first and then go back to the original max speed.
@@ -111,6 +114,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     model = load_model(args.model)
+
+    log_df = load_datasets()
+    train_img_ids = np.load("train_img_ids.npy")
+    valid_img_ids = np.load("valid_img_ids.npy")
+    test_img_ids = np.load("test_img_ids.npy")
+
+    scaler = preprocessing.StandardScaler(with_mean=False).fit(log_df.loc[train_img_ids, 'steering'].values.reshape((-1, 1)))
 
     if args.image_folder != '':
         print("Creating image folder at {}".format(args.image_folder))
