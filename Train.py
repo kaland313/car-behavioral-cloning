@@ -113,7 +113,7 @@ from keras.layers import Input
 from keras.layers.core import Dense, Dropout, Flatten
 from keras.layers.convolutional import Conv2D
 from keras.layers.normalization import BatchNormalization
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint, CSVLogger
 from keras.optimizers import SGD, Adam
 from keras import regularizers
 
@@ -142,18 +142,20 @@ def NvidiaCNN(input_layer):
 input_layer = Input((*img_dim, 3))
 final_layer = NvidiaCNN(input_layer)
 
-model = Model(inputs=input_layer, outputs=final_layer)
+model = load_model("model-fin.hdf5")
+# model = Model(inputs=input_layer, outputs=final_layer)
 
 # opt = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(optimizer=Adam(), loss='mse')
+model.compile(optimizer=Adam(lr=1e-3), loss='mse')
 print(model.summary())
 
 ########################################################################################################################
 # Train the network
 ########################################################################################################################
 
-early_stopping=EarlyStopping(patience=15, verbose=1)
-checkpointer=ModelCheckpoint(filepath='model.hdf5', save_best_only=True, verbose=1)
+early_stopping = EarlyStopping(patience=15, verbose=1)
+checkpointer = ModelCheckpoint(filepath='model.hdf5', save_best_only=True, verbose=1)
+csv_logger = CSVLogger('training_history.log')
 # checkpointer=ModelCheckpoint(filepath='models/model.{epoch:02d}-{val_loss:.3f}.hdf5', save_best_only=False, verbose=1, period=5)
 
 history = model.fit_generator(generator=training_generator,
@@ -161,7 +163,7 @@ history = model.fit_generator(generator=training_generator,
                               epochs=50,
                               validation_data=validation_generator,
                               validation_steps=len(validation_generator),
-                              callbacks=[checkpointer, early_stopping],
+                              callbacks=[checkpointer, csv_logger],
                               verbose=1)
 
 model.save('model-fin.hdf5')
