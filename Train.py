@@ -29,6 +29,8 @@ from TrainTestUtils import *
 ########################################################################################################################
 # PARAMETERS
 ########################################################################################################################
+output_loc='RepeatedTraining/05/'
+
 valid_split = 0.15
 test_split = 0.15
 
@@ -74,9 +76,9 @@ train_img_ids, valid_img_ids, test_img_ids = separate(filtered_train_img_id, val
 # plt.hist(log_df.loc[filtered_train_img_id, 'steering'], bins=np.arange(-0.95, 1.0, 0.1))
 # plt.show()
 
-np.save("train_img_ids.npy", train_img_ids)
-np.save("valid_img_ids.npy", valid_img_ids)
-np.save("test_img_ids.npy", test_img_ids)
+np.save(output_loc + "train_img_ids.npy", train_img_ids)
+np.save(output_loc + "valid_img_ids.npy", valid_img_ids)
+np.save(output_loc + "test_img_ids.npy", test_img_ids)
 
 
 training_generator = DataGenerator(
@@ -128,8 +130,7 @@ from keras import regularizers
 
 
 def NvidiaCNN(input_layer):
-    x = BatchNormalization()(input_layer)
-    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu')(x)
+    x = Conv2D(filters=6, kernel_size=5, strides=(2, 2), activation='relu')(input_layer)
     x = BatchNormalization()(x)
     x = Conv2D(filters=9, kernel_size=5, strides=(2, 2), activation='relu')(x)
     x = BatchNormalization()(x)
@@ -139,9 +140,7 @@ def NvidiaCNN(input_layer):
     x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dense(units=50, activation='tanh')(x)
-    x = BatchNormalization()(x)
     x = Dense(units=25, activation='tanh')(x)
-    x = BatchNormalization()(x)
     x = Dense(units=5, activation='tanh')(x)
     x = Dense(units=1, activation='tanh')(x)
 
@@ -163,8 +162,8 @@ print(model.summary())
 ########################################################################################################################
 
 early_stopping = EarlyStopping(patience=10, verbose=1)
-checkpointer = ModelCheckpoint(filepath='model.hdf5', save_best_only=True, verbose=1)
-csv_logger = CSVLogger('training_history.log')
+checkpointer = ModelCheckpoint(filepath=output_loc + 'model.hdf5', save_best_only=True, verbose=1)
+csv_logger = CSVLogger(output_loc + 'training_history.log')
 # checkpointer=ModelCheckpoint(filepath='models/model.{epoch:02d}-{val_loss:.3f}.hdf5', save_best_only=False, verbose=1, period=5)
 
 history = model.fit_generator(generator=training_generator,
@@ -175,6 +174,6 @@ history = model.fit_generator(generator=training_generator,
                               callbacks=[checkpointer, early_stopping, csv_logger],
                               verbose=1)
 
-model.save('model-fin.hdf5')
+model.save(output_loc + 'model-fin.hdf5')
 
 plot_history(history)
